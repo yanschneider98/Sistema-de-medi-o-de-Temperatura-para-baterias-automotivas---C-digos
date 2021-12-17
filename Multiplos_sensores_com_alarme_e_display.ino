@@ -1,7 +1,12 @@
 /*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com  
+  Projeto sistema de medição de temperatura para baterias de automóveis. https://sites.google.com/view/sistema-de-medicao-de-temp/introdu%C3%A7%C3%A3o
+
+  Esse código lê 'n' sensores DS18B20 printa no monitor serial a temperatura medida por cada sensor e mostra o valor médio em um display OLED 0,96" 128x64 pixels.
+  Além disso permite setar dois valores de temperatura máxima e mínima para acionar um alarme.
+  
 *********/
+
+//carrega bibliotecas ////////////////////////////////
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -10,39 +15,41 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define SCREEN_WIDTH 128 // Display OLED comprimento, em pixels
+#define SCREEN_HEIGHT 64 // Display OLED altura, em pixels
 
-float media = 0;
+float media = 0; //cria uma variavél tipo float para calcular e armazenar o valor da média posteriormente.
 
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+// Declaração para um Display SSD1306 que está conectado nas portas I2C(SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-// Data wire is plugged TO GPIO 4
+// Fio de dados está conectado na porta GPIO 4
 #define ONE_WIRE_BUS 4
 
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
+// Setup para a instância oneWire se comunicar com qualquer dispositivo OneWire (não apenas para Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 
-// Pass our oneWire reference to Dallas Temperature. 
+// Passa nossa referência oneWire para Dallas temperature. 
 DallasTemperature sensors(&oneWire);
 
-// Number of temperature devices found
+// Número(quantidade) de dispositivos de temperatura encontrados
 int numberOfDevices;
 
-// We'll use this variable to store a found device address
+// Usaremos essa variavel para armazenar o endereço do dispositivo encontrado. 
 DeviceAddress tempDeviceAddress; 
 
+///////////////////////////////////////////////////////////////////////////////////////
+
 void setup(){
-  // start serial port
+  // inicia a porta serial USAR SEMPRE EM 115200
   Serial.begin(115200);
   
-  // Start up the library
+  //Inicia a biblioteca
   sensors.begin();
 
-////////////////////////////////////display///////////////////////////////////////////////////
+/////////////////////////// Inicializa o display /////////////////////////////////////
 
    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
       Serial.println(F("SSD1306 allocation failed"));
@@ -50,70 +57,75 @@ void setup(){
     delay(5000);
     display.clearDisplay();
     display.setTextColor(WHITE);
+    
 ///////////////////////////////////////////////////////////////////////////////////////
 
   
-  // Grab a count of devices on the wire
+  // Conta a quantidade de sensores no barramento
   numberOfDevices = sensors.getDeviceCount();
   
-  // locate devices on the bus
-  Serial.print("Locating devices...");
-  Serial.print("Found ");
+  // Localiza os dispositivos no barramento
+  Serial.print("Localizando dispositivos...");
+  Serial.print("Encontrado ");
   Serial.print(numberOfDevices, DEC);
-  Serial.println(" devices.");
+  Serial.println(" dispositivo.");
 
-  // Loop through each device, print out address
+  // Faz o loop por cada dispositivo, e mostra o endereço
   for(int i=0;i<numberOfDevices; i++){
-    // Search the wire for address
+    // Procura no fio para o endereço
     if(sensors.getAddress(tempDeviceAddress, i)){
-      Serial.print("Found device ");
-      Serial.print(i, DEC);
-      Serial.print(" with address: ");
-      printAddress(tempDeviceAddress);
-      Serial.println();
+        Serial.print("Encontrado dispositivo");
+        Serial.print(i, DEC);
+        Serial.print(" com endereço: ");
+        printAddress(tempDeviceAddress); //vai para a função printAddress
+        Serial.println();
     } else {
-      Serial.print("Found ghost device at ");
-      Serial.print(i, DEC);
-      Serial.print(" but could not detect address. Check power and cabling");
+        Serial.print("Encontrado dispositivo fantasma em ");
+        Serial.print(i, DEC);
+        Serial.print(",mas não detectado endereço. Verifique a conexão de alimentação.");
     }
-      Serial.println("Setting alarm temps...");
 
-      // alarm when temp is higher than 30C
+
+    //******** Configuração dos alarmes
+      Serial.println("Setando temperaturas de alarmes...");
+
+      // Alarme para quando a temperatura é maior que 'x'
       sensors.setHighAlarmTemp(tempDeviceAddress, 30);
       
-      // alarm when temp is lower than -10C
+      // Alarme para quando a temperatura é menor que 'x'
       sensors.setLowAlarmTemp(tempDeviceAddress, -10);
 
-      Serial.print("New Device Alarms: ");
+      Serial.print("Novo alarme: ");
       Serial.print(i, DEC);
-      Serial.print("Alarms: ");
-      printAlarms(tempDeviceAddress);
+      Serial.print("Alarmes: ");
+      printAlarms(tempDeviceAddress); // vai para a função printAlarms
       Serial.println();
   }
-
-  
 }
 
+//     fim do void setup  *************************************************************************************************************  
+
+
 void loop(){ 
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  
-  // Loop through each device, print out temperature data
+  sensors.requestTemperatures(); //Manda um comando para pegar temperaturas
+  // Faz o loop por cada dispositivo, e mostra no monitor serial cada temperatura
   for(int i=0;i<numberOfDevices; i++){
     // Search the wire for address
     if(sensors.getAddress(tempDeviceAddress, i)){
       // Output the device ID
       Serial.println();
-      Serial.print("Temperature for device: ");
+      Serial.print("Temperatura para dispositivo: ");
       Serial.println(i,DEC);
       // Print the data
       float tempC = sensors.getTempC(tempDeviceAddress);
       Serial.print("Temp C: ");
       Serial.print(tempC);
-      Serial.print(" Temp F: ");
-      Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
+      //Serial.print(" Temp F: ");
+      //Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
+      Serial.println();
       checkAlarm(tempDeviceAddress);
 
-      media += sensors.getTempC(tempDeviceAddress);
+      media += sensors.getTempC(tempDeviceAddress); // soma as temperaturas lidas ao longo loop na variavel media
           
     }
   }
@@ -122,7 +134,7 @@ void loop(){
     // clear display - Mostra o resultado da media no display
     display.clearDisplay();
     
-    // display temperature
+    // Mostra a temperatura no display
     display.setTextSize(1);
     display.setCursor(0,20);
     display.print("Temperatura: ");
@@ -143,32 +155,32 @@ void loop(){
     Serial.print(media);
     Serial.println();
     
-    media = 0; //zera o valor da media para a proxima media.
+    media = 0; //zera o valor da media para a próxima média.
   
   Serial.println();
   Serial.print("********************************************");
-  delay(5000);
+  delay(5000); // intervalo de 5 segundas para mostra a próxima amostragem
 }
 
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress) {
+// função para printar o endereço do dispositivo
+void printAddress(DeviceAddress tempDeviceAddress) {
   for (uint8_t i = 0; i < 8; i++){
-    if (deviceAddress[i] < 16) Serial.print("0");
-          Serial.print(deviceAddress[i], HEX);
+    if (tempDeviceAddress[i] < 16) Serial.print("0");
+          Serial.print(tempDeviceAddress[i], HEX);
   }
   
 }
 
-
+// função para printar alarmes
 void printAlarms(uint8_t tempDeviceAddress[]) /// deviceAddress
 {
   char temp;
   temp = sensors.getHighAlarmTemp(tempDeviceAddress);
-  Serial.print("High Alarm: ");
+  Serial.print("Alarme de temperatura elevada: ");
   Serial.print(temp, DEC);
   Serial.print("C/");
   Serial.print(DallasTemperature::toFahrenheit(temp));
-  Serial.print("F | Low Alarm: ");
+  Serial.print("F | Alarme de temperatura baixa: ");
   temp = sensors.getLowAlarmTemp(tempDeviceAddress);
   Serial.print(temp, DEC);
   Serial.print("C/");
@@ -176,7 +188,7 @@ void printAlarms(uint8_t tempDeviceAddress[]) /// deviceAddress
   Serial.print("F");
 }
 
-
+// função para checar se o sensor entrou na condição de disparar o alarme.
  void checkAlarm(DeviceAddress tempDeviceAddress)
 {
   if (sensors.hasAlarm(tempDeviceAddress))
