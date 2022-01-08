@@ -1,4 +1,7 @@
 /*********
+********************************** OBS.: ESSE CÓDIGO NÃO ESTÁ FUNCIONANDO ****************************
+
+
   Projeto sistema de medição de temperatura para baterias de automóveis. https://sites.google.com/view/sistema-de-medicao-de-temp/introdu%C3%A7%C3%A3o
  
   Esse código lê 'n' sensores DS18B20 printa no monitor serial a temperatura medida por cada sensor e mostra o valor médio em um display OLED 0,96" 128x64 pixels.
