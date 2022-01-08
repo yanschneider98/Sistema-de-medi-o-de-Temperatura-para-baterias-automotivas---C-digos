@@ -1,4 +1,12 @@
 /*********
+
+** CÓDIGO TESTE PARA MULTITASK **
+
+Esse código implementa o Multicore ou Multitask no microcontrolador, trabalhando com um núcleo atualizando o display e outro monitorando os sensores. 
+Demais funções não foram implementadas, pois necessitam configurar handles para que não fiquem o tempo todo processando.
+
+
+
   Projeto sistema de medição de temperatura para baterias de automóveis. https://sites.google.com/view/sistema-de-medicao-de-temp/introdu%C3%A7%C3%A3o
   Esse código lê 'n' sensores DS18B20 printa no monitor serial a temperatura medida por cada sensor e mostra o valor médio em um display OLED 0,96" 128x64 pixels.
   Além disso permite setar dois valores de temperatura máxima e mínima para acionar um alarme.
