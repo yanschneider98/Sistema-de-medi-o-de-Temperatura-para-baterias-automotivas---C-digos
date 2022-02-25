@@ -78,6 +78,12 @@ int numberOfDevices;
 // Usaremos essa variavel para armazenar o endereço do dispositivo encontrado.
 DeviceAddress tempDeviceAddress;
 
+uint8_t sensor1[8] = { 0x28, 0xFF, 0x64, 0x1, 0xB7, 0xCD, 0x39, 0x10 };
+DeviceAddress sensor2 = { 0x28, 0xFF, 0x64, 0x1, 0xB7, 0xF3, 0xB2, 0x4D };
+DeviceAddress sensor3 = { 0x28, 0xFF, 0x64, 0x1, 0xB0, 0x1D, 0x68, 0xB7 };
+
+String stringOne[8];
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
@@ -265,7 +271,7 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
 
     printTela(media, DesvioPadrao);
     getTimeStamp();
-    logSDCard(tempDeviceAddress);
+    logSDCard();
 
     // Increment readingID on every new reading
     readingID++;
@@ -364,7 +370,7 @@ void printBuzzerEDisplay(DeviceAddress tempDeviceAddress) {
 
   printAddress(tempDeviceAddress);
   getTimeStamp();
-  logSDCard(tempDeviceAddress);
+  logSDCard();
   delay(1000);
 
 }
@@ -396,11 +402,14 @@ void getTimeStamp() {
 }
 
 // Write the sensor readings on the SD card
-void logSDCard(DeviceAddress tempDeviceAddress) {
+void logSDCard() {
+  for(uint8_t i = 0; i<8; i++){
+      stringOne[i] = String(tempDeviceAddress[i],HEX);
+  }
   if (controle == true) {
     dataMessage = String(readingID) + "," + String(dayStamp) + "," + String(timeStamp) + "," +
                   String(media) + "," + String(DesvioPadrao) + "," + 
-                  String(endereco) + "," + String(tempC) + "\r\n";
+                  String(stringOne[0]+stringOne[1]+stringOne[2]+stringOne[3]+stringOne[4]+stringOne[5]+stringOne[6]+stringOne[7]) + "," + String(tempC) + "\r\n";
   }
   if (controle == false) {
     dataMessage = String(readingID) + "," + String(dayStamp) + "," + String(timeStamp) + "," +
