@@ -90,8 +90,36 @@ void setup() {
   Serial.begin(115200);
   //Inicia a biblioteca
   sensors.begin();
+
+  /////////////////////////// Inicializa o display /////////////////////////////////////
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);
+  }
+  delay(2000);
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
+  display.setTextSize(2);
+  display.setCursor(34, 25);
+  display.print("SMTBA");
+  display.drawRect(0, 0, 128, 64, WHITE);
+  display.display();
+
+  delay(2000);
+  display.clearDisplay();
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  
   // Connect to Wi-Fi network with SSID and password
-  Serial.print("Connecting to ");
+  Serial.print("Conectando: ");
+
+  display.setTextSize(1);
+  display.setCursor(5, 25);
+  display.print("Conectando...");
+  display.display();
+  
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -99,7 +127,15 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("");
-  Serial.println("WiFi connected.");
+  Serial.println("WiFi conectado.");
+    
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(5, 25);
+  display.print("WiFi conectado");
+  display.display();
+  delay(2000);
+  display.clearDisplay();
 
   // Initialize a NTPClient to get time
   timeClient.begin();
@@ -114,16 +150,46 @@ void setup() {
   SD.begin(SD_CS);
   if (!SD.begin(SD_CS)) {
     Serial.println("Card Mount Failed");
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(2, 25);
+    display.print("Falha ao montar o");
+    display.setCursor(2, 35);
+    display.print("cartao!");
+    display.display();
+    delay(2000);
+    display.clearDisplay();
+    
     return;
   }
   uint8_t cardType = SD.cardType();
   if (cardType == CARD_NONE) {
     Serial.println("No SD card attached");
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(2, 25);
+    display.print("Sem cartao SD!");
+    display.display();
+    delay(2000);
+    display.clearDisplay();
+    
     return;
   }
   Serial.println("Initializing SD card...");
+
   if (!SD.begin(SD_CS)) {
     Serial.println("ERROR - SD card initialization failed!");
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(2, 25);
+    display.print("ERRO - SD!");
+    display.display();
+    delay(2000);
+    display.clearDisplay();
+    
     return;    // init failed
   }
 
@@ -140,18 +206,6 @@ void setup() {
   }
   file.close();
 
-  /////////////////////////// Inicializa o display /////////////////////////////////////
-
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;);
-  }
-  delay(5000);
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-
-  ///////////////////////////////////////////////////////////////////////////////////////
-
 
   // Conta a quantidade de sensores no barramento
   numberOfDevices = sensors.getDeviceCount();
@@ -162,9 +216,28 @@ void setup() {
   Serial.print(numberOfDevices, DEC);
   Serial.println(" dispositivo.");
 
-
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize((1));
+  display.setCursor(4, 25);
+  display.print("Encontrado ");
+  display.println(numberOfDevices, DEC);
+  display.setTextSize((1));
+  display.setCursor(2, 35);
+  display.print(" ");
+  display.print("dispositivos");
+  display.display();
+  delay(2000);
 
   // Faz o loop por cada dispositivo, e mostra o endereço
+            
+      display.clearDisplay();
+      display.setTextSize(1);
+      display.setCursor(2, 0);
+      display.print("Sensor: ");
+      display.display();
+
+       int j = 1;
   for (int i = 0; i < numberOfDevices; i++) {
     // Procura no fio para o endereço
     if (sensors.getAddress(tempDeviceAddress, i)) {
@@ -174,6 +247,22 @@ void setup() {
       printAddress(tempDeviceAddress); //vai para a função printAddress
       Serial.println();
       sensors.setResolution(tempDeviceAddress, 9); //seta resolução dos sensores, padrão é 12 bits
+
+      display.setTextColor(WHITE);
+      display.setTextSize(1);
+      display.setCursor(2, (j*10)+10);
+      j++;
+      
+      for(int i = 0; i<8; i++){
+        display.print(tempDeviceAddress[i],HEX); //imprime endereço no display
+        display.display();
+      }
+      if(j==4){
+        display.clearDisplay();
+        j = 1;
+      }
+      
+      delay(1000);
     } else {
       Serial.print("Encontrado dispositivo fantasma em ");
       Serial.print(i, DEC);
@@ -225,9 +314,8 @@ void loop() {
 
 void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
 
-  // Search the wire for address
   if (sensors.getAddress(tempDeviceAddress, i)) {
-    // Output the device ID
+
     Serial.println();
     Serial.print("Temperatura para dispositivo: ");
     Serial.println(i, DEC);
@@ -240,15 +328,11 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
     Serial.println();
     media += tempC; // soma as temperaturas lidas ao longo loop na variavel media
 
-
-    if (i == i) temp_desvio_padrao[i] = tempC;
-   /* if (i == 1) temp_desvio_padrao[i] = tempC;
-    if (i == 2) temp_desvio_padrao[i] = tempC;
-    if (i == 3) temp_desvio_padrao[i] = tempC;
-    if (i == 4) temp_desvio_padrao[i] = tempC;*/
+    temp_desvio_padrao[i] = tempC; //para cálculo do desvio padrão
   }
 
-  if (i == 2) {
+  if (i == (numberOfDevices-1)) {
+    
     media = media / numberOfDevices; //calcula a média dos sensores
     Serial.println();//mostra a temperatura média no monitor serial
     Serial.print("Temperatura média: ");
@@ -256,12 +340,16 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
     Serial.println();
 
     //Calcula desvio padrão
+ 
+    for(i = 0; i<numberOfDevices; i++){
+      DesvioPadrao = (pow((temp_desvio_padrao[i] - media), 2)) + DesvioPadrao;
+    }
+    DesvioPadrao = sqrt(DesvioPadrao/numberOfDevices);
 
-    DesvioPadrao = sqrt(((pow((temp_desvio_padrao[0] - media), 2) + pow((temp_desvio_padrao[1] - media), 2) + pow((temp_desvio_padrao[2] - media), 2)) / numberOfDevices));
+    //DesvioPadrao = sqrt(((pow((temp_desvio_padrao[0] - media), 2) + pow((temp_desvio_padrao[1] - media), 2) + pow((temp_desvio_padrao[2] - media), 2)) / numberOfDevices));
     Serial.print("Desvio Padrão: ");
     Serial.print(DesvioPadrao);
     Serial.println();
-
 
     printTela(media, DesvioPadrao);
     getTimeStamp();
@@ -271,8 +359,8 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
     readingID++;
 
     media = 0; //zera o valor da media para a próxima média.
+    DesvioPadrao = 0;
   }
-
 
   Serial.println();
   Serial.print("********************************************");
@@ -287,10 +375,10 @@ void printTela(float media, float DesvioPadrao) {
 
   // Mostra a temperatura no display
   display.setTextSize(1);
-  display.setCursor(0, 0);
+  display.setCursor(5, 5);
   display.print("Temperatura: ");
   display.setTextSize(2);
-  display.setCursor(0, 10);
+  display.setCursor(25, 18);
   display.print(media);
   display.print(" ");
   display.setTextSize(1);
@@ -300,12 +388,14 @@ void printTela(float media, float DesvioPadrao) {
   display.print("C");
 
   display.setTextSize(1);
-  display.setCursor(0, 30);
+  display.setCursor(6, 36);
   display.print("Desvio Padrao: ");
   display.setTextSize(2);
-  display.setCursor(0, 40);
+  display.setCursor(38, 46);
   display.print(DesvioPadrao);
   display.print(" ");
+
+  display.drawRect(0, 0, 128, 64, WHITE);
 
   display.display();
 
@@ -353,18 +443,18 @@ void printBuzzerEDisplay(DeviceAddress tempDeviceAddress) {
   }
 
   display.setTextSize(1);
-  display.setCursor(0, 0);
+  display.setCursor(5, 0);
   display.print("Sensor: ");
   display.setTextSize(1);
-  display.setCursor(0, 10);
+  display.setCursor(20, 20);
   for(int i = 0; i<8; i++){
     display.print(tempDeviceAddress[i],HEX);
   }
   display.setTextSize(1);
-  display.setCursor(0, 30);
+  display.setCursor(20, 30);
   display.print("!!! ALARME !!! ");
   display.setTextSize(2);
-  display.setCursor(0, 40);
+  display.setCursor(18, 46);
   display.print(tempC);
   display.print(" ");
   display.setTextSize(1);
