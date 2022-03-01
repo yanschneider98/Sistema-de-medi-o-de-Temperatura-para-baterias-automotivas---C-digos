@@ -111,7 +111,7 @@ void setup() {
   display.clearDisplay();
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  
+
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Conectando: ");
 
@@ -119,7 +119,7 @@ void setup() {
   display.setCursor(5, 25);
   display.print("Conectando...");
   display.display();
-  
+
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -128,7 +128,7 @@ void setup() {
   }
   Serial.println("");
   Serial.println("WiFi conectado.");
-    
+
   display.clearDisplay();
   display.setTextSize(1);
   display.setCursor(5, 25);
@@ -160,7 +160,7 @@ void setup() {
     display.display();
     delay(2000);
     display.clearDisplay();
-    
+
     return;
   }
   uint8_t cardType = SD.cardType();
@@ -174,7 +174,7 @@ void setup() {
     display.display();
     delay(2000);
     display.clearDisplay();
-    
+
     return;
   }
   Serial.println("Initializing SD card...");
@@ -189,7 +189,7 @@ void setup() {
     display.display();
     delay(2000);
     display.clearDisplay();
-    
+
     return;    // init failed
   }
 
@@ -230,14 +230,14 @@ void setup() {
   delay(2000);
 
   // Faz o loop por cada dispositivo, e mostra o endereço
-            
-      display.clearDisplay();
-      display.setTextSize(1);
-      display.setCursor(2, 0);
-      display.print("Sensor: ");
-      display.display();
 
-       int j = 1;
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(2, 0);
+  display.print("Sensor: ");
+  display.display();
+
+  int j = 1;
   for (int i = 0; i < numberOfDevices; i++) {
     // Procura no fio para o endereço
     if (sensors.getAddress(tempDeviceAddress, i)) {
@@ -250,18 +250,18 @@ void setup() {
 
       display.setTextColor(WHITE);
       display.setTextSize(1);
-      display.setCursor(2, (j*10)+10);
+      display.setCursor(2, (j * 10) + 10);
       j++;
-      
-      for(int i = 0; i<8; i++){
-        display.print(tempDeviceAddress[i],HEX); //imprime endereço no display
+
+      for (int i = 0; i < 8; i++) {
+        display.print(tempDeviceAddress[i], HEX); //imprime endereço no display
         display.display();
       }
-      if(j==4){
+      if (j == 4) {
         display.clearDisplay();
         j = 1;
       }
-      
+
       delay(1000);
     } else {
       Serial.print("Encontrado dispositivo fantasma em ");
@@ -331,8 +331,8 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
     temp_desvio_padrao[i] = tempC; //para cálculo do desvio padrão
   }
 
-  if (i == (numberOfDevices-1)) {
-    
+  if (i == (numberOfDevices - 1)) {
+
     media = media / numberOfDevices; //calcula a média dos sensores
     Serial.println();//mostra a temperatura média no monitor serial
     Serial.print("Temperatura média: ");
@@ -340,11 +340,11 @@ void temperaturaAtual(DeviceAddress tempDeviceAddress, int i) {
     Serial.println();
 
     //Calcula desvio padrão
- 
-    for(i = 0; i<numberOfDevices; i++){
+
+    for (i = 0; i < numberOfDevices; i++) {
       DesvioPadrao = (pow((temp_desvio_padrao[i] - media), 2)) + DesvioPadrao;
     }
-    DesvioPadrao = sqrt(DesvioPadrao/numberOfDevices);
+    DesvioPadrao = sqrt(DesvioPadrao / numberOfDevices);
 
     //DesvioPadrao = sqrt(((pow((temp_desvio_padrao[0] - media), 2) + pow((temp_desvio_padrao[1] - media), 2) + pow((temp_desvio_padrao[2] - media), 2)) / numberOfDevices));
     Serial.print("Desvio Padrão: ");
@@ -406,7 +406,7 @@ void printAddress(DeviceAddress tempDeviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
     if (tempDeviceAddress[i] < 16) Serial.print("0");
     Serial.print(tempDeviceAddress[i], HEX);
-    }
+  }
 }
 
 // função para printar alarmes
@@ -438,8 +438,8 @@ void printBuzzerEDisplay(DeviceAddress tempDeviceAddress) {
   display.clearDisplay();
   // Mostra a temperatura no display
 
-  for(uint8_t i = 0; i<8; i++){
-      stringOne[i] = String(tempDeviceAddress[i],HEX);
+  for (uint8_t i = 0; i < 8; i++) {
+    stringOne[i] = String(tempDeviceAddress[i], HEX);
   }
 
   display.setTextSize(1);
@@ -447,8 +447,8 @@ void printBuzzerEDisplay(DeviceAddress tempDeviceAddress) {
   display.print("Sensor: ");
   display.setTextSize(1);
   display.setCursor(20, 20);
-  for(int i = 0; i<8; i++){
-    display.print(tempDeviceAddress[i],HEX);
+  for (int i = 0; i < 8; i++) {
+    display.print(tempDeviceAddress[i], HEX);
   }
   display.setTextSize(1);
   display.setCursor(20, 30);
@@ -466,7 +466,7 @@ void printBuzzerEDisplay(DeviceAddress tempDeviceAddress) {
   display.display();
 
   digitalWrite(buzzer, HIGH);
-  
+
   getTimeStamp();
   logSDCard();
   delay(1000);
@@ -504,8 +504,8 @@ void logSDCard() {
 
   if (controle == true) {
     dataMessage = String(readingID) + "," + String(dayStamp) + "," + String(timeStamp) + "," +
-                  String(media) + "," + String(DesvioPadrao) + "," + 
-                  String(stringOne[0]+stringOne[1]+stringOne[2]+stringOne[3]+stringOne[4]+stringOne[5]+stringOne[6]+stringOne[7]) + "," + String(tempC) + "\r\n";
+                  String(media) + "," + String(DesvioPadrao) + "," +
+                  String(stringOne[0] + stringOne[1] + stringOne[2] + stringOne[3] + stringOne[4] + stringOne[5] + stringOne[6] + stringOne[7]) + "," + String(tempC) + "\r\n";
   }
   if (controle == false) {
     dataMessage = String(readingID) + "," + String(dayStamp) + "," + String(timeStamp) + "," +
